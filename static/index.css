@@ -27,6 +27,11 @@ body {
         text-align: center; /* Center align */
         margin: 20px 0;
     }
+    /* jd upload button */
+    .jdUpload{
+        text-align: center; /* Center align */
+        margin: 20px 0;
+    }
 
     .resumeUpload input[type="file"] {
     display: none; /* Hide default input */

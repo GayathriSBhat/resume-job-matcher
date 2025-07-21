@@ -85,7 +85,6 @@ function uploadResume() {
 
                         case "total_experience":
                             total_experience.value=value
-                            console.log(total_experience.value)
                             break;
 
                         case "degrees":
@@ -150,6 +149,7 @@ document.getElementById("contactForm").addEventListener("submit", function(event
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resumeUpload').addEventListener('change', uploadResume);
+    document.getElementById('jdUpload').addEventListener('change', uploadJDFile); 
 });
 
 function toggleEdit(id) {
@@ -183,24 +183,57 @@ function updateResumeInfo() {
         return;
     }
 
-    const editedText = document.getElementById('parsedResumeText').value;
+    // Debug
+     const ids = [
+        "first_name", "last_name", "email", "phone",
+        "total_experience", "degrees", "institutions", "majors", "skills"
+    ];
+    for (const id of ids) {
+        if (!document.getElementById(id)) {
+            alert(`Element with id "${id}" not found!`);
+            return;
+        }
+    }
+    // Collect updated data from form fields
+        const name = document.getElementById("first_name").value + " " + document.getElementById("last_name").value;
+        const email = document.getElementById("email").value;
+        const phone = document.getElementById("phone").value;
+        const total_experience = document.getElementById("total_experience").value;
+        const degrees = document.getElementById("degrees").value;
+        const institutions = document.getElementById("institutions").value;
+        const majors = document.getElementById("majors").value;
+        const skills = document.getElementById("skills").value;
 
-    fetch('http://localhost:5000/update_resume_info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    const updatedData = {
             resume_id: uploadedResumeId,
-            edited_text: editedText
+            name,
+            email,
+            phone,
+            total_experience,
+            degrees,
+            institutions,
+            majors,
+            skills
+        };
+
+    
+
+    fetch('/update_resume_info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message);
-    })
-    .catch(error => {
-        alert("Failed to update resume info: " + error.message);
-    });
-}
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || "Resume updated.");
+        })
+        .catch(error => {
+            console.error('Update error:', error);
+            alert("Error updating resume.");
+        });
+    }
 
 // Common function to send JD data (from file or manual input)
 function submitJD(title, description) {
@@ -232,27 +265,66 @@ function submitJD(title, description) {
 
 // Manual JD submission
 function uploadJDManual() {
-    const title = document.getElementById('jdTitleManual').value.trim();
-    const description = document.getElementById('jdDescManual').value.trim();
+    const title = document.getElementById('jdTitle').value.trim();
+    const description = document.getElementById('jdDesc').value.trim();
+    if (!resumeUploaded || !uploadedResumeId) {
+        return alert("Please upload a resume first.");
+    }
+     if (!title || !description) {
+        return alert("Title and description are required.");
+    }
     submitJD(title, description);
 }
 
+// submitJD
+// function submitJD(title, description){
+//     fetch('http://localhost:5000/add_jd', {
+//         method: 'POST',
+//         headers:{
+//             'Content-Type':'application/json'
+//         },
+//         body: JSON.stringify({
+//             title:title,
+//             description:description,
+//             resume_id: uploadedResumeId
+//         })
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if(data.jd_id){
+//         alert("JD submitted and linked usccessfully")
+//         }else{
+//             alert("Failed to submit JD: ")
+//         }
+//     })
+//         .catch(error => {
+//             alert("error: "+ error.message);
+//         });
+// }
+
 // JD File upload
 function uploadJDFile() {
-    const title = document.getElementById('jdTitleFile').value.trim();
+    //const title = document.getElementById('jdTitleFile').value.trim();
+    document.getElementById('spinner-jd').style.display = 'flex';
     const fileInput = document.getElementById('jdFileInput');
     const file = fileInput.files[0];
 
     if (!resumeUploaded || !uploadedResumeId) {
-        return alert("Upload a resume first.");
+        alert("Upload a resume first.");
+        document.getElementById('spinner-jd').style.display = 'none';
+        return;
+
     }
 
-    if (!title || !file) {
-        return alert("Please select a title and JD file.");
+    if (!file) {
+        return alert("Please select a JD file.");
     }
 
     const formData = new FormData();
     formData.append('jd_file', file);
+    formData.append('resume_id', uploadedResumeId);
+    console.log(uploadedResumeId)
+   
 
     fetch('http://localhost:5000/parse_jd_file', {
         method: 'POST',
@@ -260,12 +332,20 @@ function uploadJDFile() {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('spinner-jd').style.display = 'none';
+        console.log("Full JD JSON response:", data); // Track it in console
+        const title=data.title;
+        console.log(title)
+        const description= data.description;
+        console.log(description)
+
         if (data.description) {
             let formatted = '';
             for (const [key, value] of Object.entries(data.description)) {
                 formatted += `${key}: ${Array.isArray(value) ? value.join(', ') : value}\n`;
             }
             submitJD(title, formatted);
+            alert("JD uploaded and parsed successfully!");
         } else {
             alert("Failed to parse JD file.");
         }

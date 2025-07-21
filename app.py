@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, g
 from werkzeug.utils import secure_filename
+from utilties.resume_parser.jd_parser import JDParser
 from flask_cors import CORS
 import os
 import sqlite3
@@ -169,18 +170,34 @@ def upload_resume():
 def update_resume_info():
     data = request.get_json()
     resume_id = data.get('resume_id')
-    edited_text = data.get('edited_text')
 
-    if not resume_id or not edited_text:
+    if not resume_id:
         return jsonify({'message': 'Missing resume_id or text'}), 400
 
     try:
         conn = get_db()
         cur = conn.cursor()
         cur.execute(
-            'UPDATE resumes SET content = ? WHERE resume_id = ?',
-            (edited_text, resume_id)
-        )
+            '''UPDATE resumes SET 
+             name = ?,
+                email = ?,
+                phone = ?,
+                total_experience = ?,
+                degrees = ?,
+                institutions = ?,
+                majors = ?,
+                skills = ?            
+            WHERE resume_id = ?''',
+            (data.get('name'),
+            data.get('email'),
+            data.get('phone'),
+            data.get('total_experience'),
+            data.get('degrees'),
+            data.get('institutions'),
+            data.get('majors'),
+            data.get('skills'),
+            resume_id)
+            )
         conn.commit()
         return jsonify({'message': 'Resume updated successfully'}), 200
     except Exception as e:
@@ -191,9 +208,11 @@ def update_resume_info():
 @app.route('/add_jd', methods=['POST'])
 def add_jd():
     data = request.get_json()
+    print('received data:', data)
     title = data.get('title')
     description = data.get('description')
     resume_id = data.get('resume_id')
+    print(resume_id)
 
     if not title or not description or not resume_id:
         return jsonify({'message': 'Missing fields'}), 400
@@ -219,34 +238,48 @@ def add_jd():
         print("JD error:", e)
         return jsonify({'message': 'Failed to store JD'}), 500
     
+
+
 @app.route('/parse_jd_file', methods=['POST'])
 def parse_jd_file():
-    if 'jd_file' not in request.files:
+    file = request.files.get('jd_file')
+    resume_id = request.form.get('resume_id')
+
+    if not file or file.filename == '':
         return jsonify({'message': 'No JD file provided'}), 400
-
-    file = request.files['jd_file']
-    if file.filename == '':
-        return jsonify({'message': 'No selected file'}), 400
-
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(app.config['UPLOAD_FOLDER_JD'], filename)
-    file.save(file_path)
+    if not resume_id:
+        return jsonify({'message': 'Missing resume_id'}), 400
 
     try:
-        with open(file_path, 'rb') as f:
-            content = f.read()
+        jd_parser = JDParser(jd_binary=file.read())
+        parsed_data = jd_parser.parse()
+        print(parsed_data)
 
-        # Assuming your parse_jd_pdf function takes bytes and returns a string
-        parsed_description = get_parsed_jd_data(content)
+        title = parsed_data['title']
+        description = parsed_data['raw_text']
 
-        return jsonify({
-            'message': f"JD file '{filename}' parsed.",
-            'description': parsed_description
-        }), 200
+        conn = get_db()
+        cur = conn.cursor()
+
+        cur.execute(
+            'INSERT INTO job_descriptions (title, description) VALUES (?, ?)',
+            (title, description)
+        )
+        jd_id = cur.lastrowid
+
+        cur.execute(
+            'UPDATE resumes SET jd_id = ? WHERE resume_id = ?',
+            (jd_id, resume_id)
+        )
+        conn.commit()
+
+        return jsonify({'message': 'JD uploaded and linked.', 'jd_id': jd_id, 'title': title,
+                        'description': description}), 200
 
     except Exception as e:
         print("JD parse error:", e)
         return jsonify({'message': 'Internal JD parse error'}), 500
+
 
 # -----------------------
 # Run the App
