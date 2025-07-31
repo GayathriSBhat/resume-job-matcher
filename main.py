@@ -1,4 +1,4 @@
-from utilties.job_description_parser.job_description_parser import JobDescriptionParser
+# from utilties.job_description_parser.jd_parser import JDParser
 from utilties.resume_parser.resume_parser import ResumeParser
 import os
 

@@ -1,15 +1,15 @@
 from flask import Flask, render_template, request, jsonify, g
 from werkzeug.utils import secure_filename
-from utilties.resume_parser.jd_parser import JDParser
+from utilties.job_description_parser.jd_parser import JDParser
 from flask_cors import CORS
 import os
 import sqlite3
 import click
-from utilties.resume_parser.resume_parser import ResumeParser
+# from utilties.resume_parser.resume_parser import ResumeParser
 
 # Import the parser
 from main import get_parsed_resume_data
-from main import get_parsed_jd_data
+
 
 
 app = Flask(__name__)
@@ -31,9 +31,7 @@ app.config['UPLOAD_FOLDER_JD'] = UPLOAD_FOLDER_JD
 
 DB_PATH = os.path.join(DATABASE_FOLDER, 'app.db')
 
-# -----------------------
 # DB Functions
-# -----------------------
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(DB_PATH)
@@ -46,9 +44,8 @@ def close_db(error):
     if db:
         db.close()
 
-# -----------------------
+
 # Init DB Tables
-# -----------------------
 def init_db():
     conn = get_db()
     cur = conn.cursor()
@@ -92,7 +89,7 @@ def init_db_command():
 def home():
     return render_template('index.html')
 
-#form
+# Upload Resume
 @app.route('/upload_resume', methods=['POST'])
 def upload_resume():
     if 'resume' not in request.files:
@@ -179,7 +176,7 @@ def update_resume_info():
         cur = conn.cursor()
         cur.execute(
             '''UPDATE resumes SET 
-             name = ?,
+                name = ?,
                 email = ?,
                 phone = ?,
                 total_experience = ?,
@@ -242,38 +239,46 @@ def add_jd():
 
 @app.route('/parse_jd_file', methods=['POST'])
 def parse_jd_file():
+
+    # If no JD is uploaded, throw error 
+    if 'jd_file' not in request.files:
+        return jsonify({'message': 'Missing JD file'}), 400
+
+    # save JD file and associated resume ID to save in database
     file = request.files.get('jd_file')
     resume_id = request.form.get('resume_id')
 
+    # if resume is not uploaded, don't allow to upload JD
     if not file or file.filename == '':
         return jsonify({'message': 'No JD file provided'}), 400
     if not resume_id:
         return jsonify({'message': 'Missing resume_id'}), 400
 
+    # Save the file
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER_JD'], filename)
+    file.save(file_path)
+
     try:
-        jd_parser = JDParser(jd_binary=file.read())
+        # read the file
+        with open(file_path, 'rb') as f:
+            content = f.read()
+
+        # LLM Parser
+        from utilties.job_description_parser.jd_parser_llm import main as extract_jd_llm
+        
+        extract_jd_llm(file_path)
+
+        # jd_parser = JDParser(content)
+        jd_parser = JDParser(jd_binary=content)
         parsed_data = jd_parser.parse()
-        print(parsed_data)
 
         title = parsed_data['title']
+        print(title)
         description = parsed_data['raw_text']
+        print(description)
 
-        conn = get_db()
-        cur = conn.cursor()
-
-        cur.execute(
-            'INSERT INTO job_descriptions (title, description) VALUES (?, ?)',
-            (title, description)
-        )
-        jd_id = cur.lastrowid
-
-        cur.execute(
-            'UPDATE resumes SET jd_id = ? WHERE resume_id = ?',
-            (jd_id, resume_id)
-        )
-        conn.commit()
-
-        return jsonify({'message': 'JD uploaded and linked.', 'jd_id': jd_id, 'title': title,
+        return jsonify({'message': 'JD uploaded and linked.', 'title': title,
                         'description': description}), 200
 
     except Exception as e:

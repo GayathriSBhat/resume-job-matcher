@@ -267,6 +267,7 @@ function submitJD(title, description) {
 function uploadJDManual() {
     const title = document.getElementById('jdTitle').value.trim();
     const description = document.getElementById('jdDesc').value.trim();
+
     if (!resumeUploaded || !uploadedResumeId) {
         return alert("Please upload a resume first.");
     }
@@ -304,27 +305,19 @@ function uploadJDManual() {
 
 // JD File upload
 function uploadJDFile() {
-    //const title = document.getElementById('jdTitleFile').value.trim();
-    document.getElementById('spinner-jd').style.display = 'flex';
     const fileInput = document.getElementById('jdFileInput');
     const file = fileInput.files[0];
 
     if (!resumeUploaded || !uploadedResumeId) {
-        alert("Upload a resume first.");
-        document.getElementById('spinner-jd').style.display = 'none';
-        return;
-
-    }
-
-    if (!file) {
-        return alert("Please select a JD file.");
+        return alert("Upload a resume first.");    
     }
 
     const formData = new FormData();
     formData.append('jd_file', file);
     formData.append('resume_id', uploadedResumeId);
     console.log(uploadedResumeId)
-   
+
+    document.getElementById('spinner-jd').style.display = 'flex';
 
     fetch('http://localhost:5000/parse_jd_file', {
         method: 'POST',
@@ -333,24 +326,22 @@ function uploadJDFile() {
     .then(response => response.json())
     .then(data => {
         document.getElementById('spinner-jd').style.display = 'none';
-        console.log("Full JD JSON response:", data); // Track it in console
+
+        console.log("Full JD JSON response:", data); 
         const title=data.title;
         console.log(title)
         const description= data.description;
         console.log(description)
 
-        if (data.description) {
-            let formatted = '';
-            for (const [key, value] of Object.entries(data.description)) {
-                formatted += `${key}: ${Array.isArray(value) ? value.join(', ') : value}\n`;
-            }
-            submitJD(title, formatted);
+        if (title && description) {
+            submitJD(title, description);
             alert("JD uploaded and parsed successfully!");
         } else {
             alert("Failed to parse JD file.");
         }
     })
     .catch(err => {
+        document.getElementById('spinner-jd').style.display = 'none';
         alert("Error parsing JD file: " + err.message);
     });
 }

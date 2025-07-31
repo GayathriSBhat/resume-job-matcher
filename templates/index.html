@@ -5,6 +5,7 @@
     <title>Resume Job Matcher</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     
 </head>
 
@@ -105,7 +106,7 @@
         <div> <h2>OR</h2> </div>
 
         <div class="jdUpload">
-        <input type="file" id="jdFileInput" name="jd_file" accept=".pdf" onclick="uploadJDFile()" />
+        <input type="file" id="jdFileInput" name="jd_file" accept=".pdf" onchange="uploadJDFile()" />
         <label for="jdUpload" id="jdUpload">Upload JD File </label>
         </div>
 

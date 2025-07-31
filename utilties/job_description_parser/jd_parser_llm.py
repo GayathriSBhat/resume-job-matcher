@@ -23,7 +23,7 @@ class JobDescription(BaseModel):
 
 class JobDescriptionExtractor:
     def __init__(self, model_name: str = "gemma2:9b-instruct-q4_K_M"):
-        print(f"🚀 Initializing Job Description Extractor with model: {model_name}")
+        print(f"Initializing Job Description Extractor with model: {model_name}")
         
         self.llm = OllamaLLM(
             model=model_name,
@@ -70,23 +70,37 @@ JSON OUTPUT:"""
             | self.output_parser
         )
         
-        print("✅ Extractor initialized successfully!")
+        print("Extractor initialized successfully!")
     
     def extract_from_pdf(self, pdf_path: str):
         try:
-            print("📄 Loading PDF...")
+            print("Loading PDF...")
             loader = PyMuPDFLoader(file_path=pdf_path)
             documents = loader.load()
             
             job_text = "\n".join([doc.page_content for doc in documents])
-            print(f"📝 Extracted {len(job_text)} characters from PDF")
+            print(f"Extracted {len(job_text)} characters from PDF")
             
-            print("🤖 Processing with LLM... (this may take 30-60 seconds)")
+            print("Processing with LLM... (this may take 30-60 seconds)")
             
+            # Error starts here
             # FIX: Direct invocation with better error handling
-            raw_response = self.llm.invoke(self.prompt.format(job_text=job_text))
+
+
+            # raw_response = self.llm.invoke(self.prompt.format(job_text=job_text))
+
+            prompt_text = self.prompt.format(job_text=job_text)
+            print("LLM Prompt:\n", prompt_text)
+
+            try:
+                raw_response = self.llm.invoke(prompt_text)
+                print("LLM responded.")
+            except Exception as e:
+                print("LLM invoke failed:", e)
+                raise
+
             
-            print(f"🔍 Raw LLM response: {raw_response[:300]}...")  # Show more of response
+            print(f"Raw LLM response: {raw_response[:300]}...")  # Show more of response
             
             # FIX: Try to clean the response if it has extra text
             import json
@@ -96,19 +110,19 @@ JSON OUTPUT:"""
             json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
             if json_match:
                 json_str = json_match.group()
-                print(f"🔧 Extracted JSON: {json_str[:200]}...")
+                print(f"Extracted JSON: {json_str[:200]}...")
                 
                 # Parse manually first to check
                 try:
                     parsed_data = json.loads(json_str)
-                    print(f"✅ JSON parsed successfully: {len(parsed_data)} fields")
+                    print(f"JSON parsed successfully: {len(parsed_data)} fields")
                     
                     # Create JobDescription object manually
                     result = JobDescription(**parsed_data)
                     return result
                     
                 except json.JSONDecodeError as e:
-                    print(f"❌ JSON parsing failed: {e}")
+                    print(f"JSON parsing failed: {e}")
                     print(f"Raw JSON: {json_str}")
                     
             # Fallback: try original parser
@@ -116,7 +130,7 @@ JSON OUTPUT:"""
             return result
             
         except Exception as e:
-            print(f"❌ Error during extraction: {e}")
+            print(f"Error during extraction: {e}")
             print(f"Full response: {raw_response if 'raw_response' in locals() else 'No response'}")
             
             # Return default object with some basic extraction
@@ -127,57 +141,56 @@ JSON OUTPUT:"""
                 responsibilities=["Check original document"]
             )
 
-def main():
+def main(file_path):
     print("Job Description Extractor")
     print("=" * 40)
     
-    # pdf_path = input("\n📁 Enter the PDF file path: ").strip()
-    pdf_path = r"samples\resumes\vidhant_resume.pdf"
+    pdf_path = input("\nEnter the PDF file path: ").strip()
     
-    print(f"\n📄 Processing: {pdf_path}")
-    print("⏳ Extracting data... (this may take a moment)")
+    print(f"\n Processing: {pdf_path}")
+    print(" Extracting data... (this may take a moment)")
     
     try:
         extractor = JobDescriptionExtractor()
         result = extractor.extract_from_pdf(pdf_path)
         
         # Display results
-        print("🎉 EXTRACTION RESULTS:")
+        print("EXTRACTION RESULTS:")
         print("========================================")
-        print(f"📋 Job Title: {result.job_title if result.job_title else 'Not specified'}")
-        print(f"🏢 Company Name: {result.company_name if result.company_name else 'Not specified'}")
-        print(f"📍 Location: {result.location if result.location else 'Not specified'}")
-        print(f"🕒 Job Type: {result.job_type if result.job_type else 'Not specified'}")
-        print(f"⏱️ Experience Required: {result.experience_required if result.experience_required else 'Not specified'}")
-        print(f"🎓 Education Level: {result.education_level if result.education_level else 'Not specified'}")
-        print(f"💰 Salary Range: {result.salary_range if result.salary_range else 'Not specified'}")
-        print(f"🎁 Benefits: {result.benefits if result.benefits else 'Not specified'}")
-        print(f"🏭 Company Size: {result.company_size if result.company_size else 'Not specified'}")
-        print(f"🌐 Industry: {result.industry if result.industry else 'Not specified'}")
+        print(f"Job Title: {result.job_title if result.job_title else 'Not specified'}")
+        print(f"Company Name: {result.company_name if result.company_name else 'Not specified'}")
+        print(f"Location: {result.location if result.location else 'Not specified'}")
+        print(f" Job Type: {result.job_type if result.job_type else 'Not specified'}")
+        print(f" Experience Required: {result.experience_required if result.experience_required else 'Not specified'}")
+        print(f" Education Level: {result.education_level if result.education_level else 'Not specified'}")
+        print(f" Salary Range: {result.salary_range if result.salary_range else 'Not specified'}")
+        print(f" Benefits: {result.benefits if result.benefits else 'Not specified'}")
+        print(f" Company Size: {result.company_size if result.company_size else 'Not specified'}")
+        print(f" Industry: {result.industry if result.industry else 'Not specified'}")
 
-        print(f"\n💻 Technical Skills ({len(result.technical_skills)}):")
+        print(f"\n Technical Skills ({len(result.technical_skills)}):")
         if result.technical_skills:
             for skill in result.technical_skills:
-                print(f"   • {skill}")
+                print(f"    {skill}")
         else:
-            print("   • None specified")
+            print("None specified")
 
-        print(f"\n🤝 Soft Skills ({len(result.soft_skills)}):")
+        print(f"\n Soft Skills ({len(result.soft_skills)}):")
         if result.soft_skills:
             for skill in result.soft_skills:
-                print(f"   • {skill}")
+                print(f"    {skill}")
         else:
-            print("   • None specified")
+            print(" None specified")
 
-        print(f"\n📝 Responsibilities ({len(result.responsibilities)}):")
+        print(f"\n Responsibilities ({len(result.responsibilities)}):")
         if result.responsibilities:
             for resp in result.responsibilities:
-                print(f"   • {resp}")
+                print(f"    {resp}")
         else:
-            print("   • None specified")
+            print(" None specified")
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
