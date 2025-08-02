@@ -265,9 +265,8 @@ def parse_jd_file():
             content = f.read()
 
         # LLM Parser
-        from utilties.job_description_parser.jd_parser_llm import main as extract_jd_llm
-        
-        extract_jd_llm(file_path)
+        # from utilties.job_description_parser.jd_parser_llm import main as extract_jd_llm
+        # extract_jd_llm(file_path)
 
         # jd_parser = JDParser(content)
         jd_parser = JDParser(jd_binary=content)
