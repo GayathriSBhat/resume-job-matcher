@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, jsonify, g
 from werkzeug.utils import secure_filename
-from utilties.job_description_parser.jd_parser import JDParser
+from utilities.job_description_parser.jd_parser import JDParser
 from flask_cors import CORS
 import os
 import sqlite3
 import click
+
 # from utilties.resume_parser.resume_parser import ResumeParser
 
 # Import the parser
@@ -54,7 +55,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS job_descriptions (
             jd_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            description BLOB NOT NULL
+            skills BLOB NOT NULL
         )
     ''')
 
@@ -201,13 +202,13 @@ def update_resume_info():
         print("Update error:", e)
         return jsonify({'message': 'Failed to update resume'}), 500
 
-#JD
+#Add JD to database
 @app.route('/add_jd', methods=['POST'])
 def add_jd():
     data = request.get_json()
     print('received data:', data)
     title = data.get('title')
-    description = data.get('description')
+    description = data.get('skills')
     resume_id = data.get('resume_id')
     print(resume_id)
 
@@ -219,7 +220,7 @@ def add_jd():
         cur = conn.cursor()
 
         cur.execute(
-            'INSERT INTO job_descriptions (title, description) VALUES (?, ?)',
+            'INSERT INTO job_descriptions (title, skills) VALUES (?, ?)',
             (title, description)
         )
         jd_id = cur.lastrowid
@@ -236,7 +237,7 @@ def add_jd():
         return jsonify({'message': 'Failed to store JD'}), 500
     
 
-
+# extract text from JD file and call jd_parser to parse contents
 @app.route('/parse_jd_file', methods=['POST'])
 def parse_jd_file():
 
@@ -276,13 +277,27 @@ def parse_jd_file():
         print(title)
         description = parsed_data['raw_text']
         print(description)
+        skills = parsed_data['skills']
+        print(skills)
 
         return jsonify({'message': 'JD uploaded and linked.', 'title': title,
-                        'description': description}), 200
+                        'skills': description}), 200
 
     except Exception as e:
         print("JD parse error:", e)
         return jsonify({'message': 'Internal JD parse error'}), 500
+    
+#skill extraction for description sent by POST of manual JD submission
+@app.route('/parse_jd_skills', methods=['POST'])    
+def parse_jd_skills():
+    from utilities.resume_parser.extract_skills import ExtractSkills
+    data = request.get_json()
+    description = data.get('description')
+    extractor = ExtractSkills()
+    jd_skills= extractor.extract_skills(description)
+    return jsonify({'skills': jd_skills}), 200
+
+    
 
 
 # -----------------------

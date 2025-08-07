@@ -1,11 +1,14 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 import fitz  # PyMuPDF
-from utilties.resume_parser.extract_name import ExtractName
-from utilties.resume_parser.extract_email import ExtractEmail
-from utilties.resume_parser.extract_phone_number import ExtractPhone
-from utilties.resume_parser.extract_total_experience import ExtractTotalExperience
-from utilties.resume_parser.extract_education import ExtractEducation
-from utilties.resume_parser.extract_skills import ExtractSkills
-
+from utilities.resume_parser.extract_name import ExtractName
+from utilities.resume_parser.extract_email import ExtractEmail
+from utilities.resume_parser.extract_phone_number import ExtractPhone
+from utilities.resume_parser.extract_total_experience import ExtractTotalExperience
+from utilities.resume_parser.extract_education import ExtractEducation
+from utilities.resume_parser.extract_skills import ExtractSkills
+# Remove duplicate imports and fix the import path to match your folder name "utilties"
 class ResumeParser:
     def __init__(self, resume_path=None, resume_binary=None):
         self.resume_path = resume_path
@@ -71,3 +74,5 @@ class ResumeParser:
             'majors': education.get('majors', []),
             'skills': skills
         }
+
+    

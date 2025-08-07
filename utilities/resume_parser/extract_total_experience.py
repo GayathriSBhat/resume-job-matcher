@@ -1,7 +1,7 @@
 import re
 from dateutil import parser
 from datetime import datetime
-from utilties.resume_parser.common import is_likely_section_heading
+from utilities.resume_parser.common import is_likely_section_heading
 
 class ExtractTotalExperience:
     def __init__(self):

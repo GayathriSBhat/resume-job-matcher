@@ -1,0 +1,4 @@
+{
+  "python.analysis.extraPaths": ["./utilities"],
+  "python.defaultInterpreterPath": "C:\\Users\\gayat\\anaconda3\\envs\\resume_parser_env\\python.exe"
+}

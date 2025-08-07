@@ -236,27 +236,26 @@ function updateResumeInfo() {
     }
 
 // Common function to send JD data (from file or manual input)
-function submitJD(title, description) {
-    if (!resumeUploaded || !uploadedResumeId) {
-        return alert("Upload a resume first.");
-    }
-
-    if (!title || !description) {
-        return alert("Please enter both title and description.");
-    }
-
+function submitJD(title, skills) {
+    
     fetch('http://localhost:5000/add_jd', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             title,
-            description,
+            // description,
+            skills, 
             resume_id: uploadedResumeId
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("JD submission failed.");
+        }
+        return response.json();
+    })
     .then(data => {
-        alert(data.message);
+        alert(data.message || "JD submitted successfully!");
     })
     .catch(err => {
         alert("Error submitting JD: " + err.message);
@@ -274,34 +273,47 @@ function uploadJDManual() {
      if (!title || !description) {
         return alert("Title and description are required.");
     }
+    // call skill_extraction and send text, skills to database
+    
     submitJD(title, description);
 }
 
-// submitJD
-// function submitJD(title, description){
-//     fetch('http://localhost:5000/add_jd', {
-//         method: 'POST',
-//         headers:{
-//             'Content-Type':'application/json'
-//         },
-//         body: JSON.stringify({
-//             title:title,
-//             description:description,
-//             resume_id: uploadedResumeId
-//         })
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         if(data.jd_id){
-//         alert("JD submitted and linked usccessfully")
-//         }else{
-//             alert("Failed to submit JD: ")
-//         }
-//     })
-//         .catch(error => {
-//             alert("error: "+ error.message);
-//         });
-// }
+// Manual JD Skill Extraction
+function skillExtractor() {
+    const title = document.getElementById('jdTitle').value.trim();
+    const description = document.getElementById('jdDesc').value.trim();
+
+    if (!resumeUploaded || !uploadedResumeId) {
+        return alert("Please upload a resume first.");
+    }
+
+    if (!title || !description) {
+        return alert("Title and description are required.");
+    }
+
+    // Step 1: Extract skills from description
+    fetch('http://localhost:5000/parse_jd_skills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Skill extraction failed.");
+        }
+        return response.json();
+    })
+    .then(data => {
+        const skills = data.skills;
+        // alert("Extracted skills: " + skills.join(', '));
+
+        // Step 2: Send to database
+        submitJD(title, skills);
+    })
+    .catch(err => {
+        alert("Error parsing skills: " + err.message);
+    });
+}
 
 // JD File upload
 function uploadJDFile() {
@@ -330,11 +342,11 @@ function uploadJDFile() {
         console.log("Full JD JSON response:", data); 
         const title=data.title;
         console.log(title)
-        const description= data.description;
-        console.log(description)
+        const skills= data.skills;
+        console.log(skills)
 
-        if (title && description) {
-            submitJD(title, description);
+        if (title && skills) {
+            submitJD(title, skills);
             alert("JD uploaded and parsed successfully!");
         } else {
             alert("Failed to parse JD file.");

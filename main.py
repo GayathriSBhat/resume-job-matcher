@@ -1,5 +1,5 @@
 # from utilties.job_description_parser.jd_parser import JDParser
-from utilties.resume_parser.resume_parser import ResumeParser
+from utilities.resume_parser.resume_parser import ResumeParser
 import os
 
 def get_parsed_resume_data(resume_text):

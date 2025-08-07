@@ -1,7 +1,7 @@
 import spacy
 import re
 import csv
-from utilties.resume_parser.common import is_likely_section_heading
+from utilities.resume_parser.common import is_likely_section_heading
 
 # Load the spaCy model for English
 nlp = spacy.load('en_core_web_sm')

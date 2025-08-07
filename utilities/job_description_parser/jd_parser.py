@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
-from utilties.job_description_parser.extract_jobTitle import ExtractJobTitle
+from utilities.job_description_parser.extract_jobTitle import ExtractJobTitle
 # from utilties.resume_parser.extract_total_experience import ExtractTotalExperience
-from utilties.resume_parser.extract_skills import ExtractSkills
+from utilities.resume_parser.extract_skills import ExtractSkills
 
 class JDParser:
     def __init__(self, jd_path=None, jd_binary=None):
@@ -40,7 +40,7 @@ class JDParser:
             print("Title extraction failed:", e)
             title = None
         
-        skills=ExtractSkills().extract(text)
+        skills=ExtractSkills().extract_skills(text)
 
         return {
             'title': title,
