@@ -33,7 +33,6 @@ class JDParser:
         return self._extract_fields(text)
     
     def _extract_fields(self, text):
-        print("Extracted JD text preview:", text[:100])
         try:
             title = ExtractJobTitle().extract(text)
         except Exception as e:

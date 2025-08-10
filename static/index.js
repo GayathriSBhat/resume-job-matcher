@@ -278,42 +278,51 @@ function uploadJDManual() {
     submitJD(title, description);
 }
 
-// Manual JD Skill Extraction
-function skillExtractor() {
-    const title = document.getElementById('jdTitle').value.trim();
-    const description = document.getElementById('jdDesc').value.trim();
+// // Manual JD Skill Extraction
+// function skillExtractor() {
+//     const title = document.getElementById('jdTitle').value.trim();
+//     const description = document.getElementById('jdDesc').value.trim();
 
-    if (!resumeUploaded || !uploadedResumeId) {
-        return alert("Please upload a resume first.");
-    }
+//     if (!resumeUploaded || !uploadedResumeId) {
+//         return alert("Please upload a resume first.");
+//     }
 
-    if (!title || !description) {
-        return alert("Title and description are required.");
-    }
+//     if (!title || !description) {
+//         return alert("Title and description are required.");
+//     }
 
-    // Step 1: Extract skills from description
-    fetch('http://localhost:5000/parse_jd_skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Skill extraction failed.");
-        }
-        return response.json();
-    })
-    .then(data => {
-        const skills = data.skills;
-        // alert("Extracted skills: " + skills.join(', '));
+//     // Step 1: Extract skills from description
+//     fetch('http://localhost:5000/parse_jd_skills', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ description })
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error("Skill extraction failed.");
+//         }
+//         return response.json();
+//     })
+//     .then(data => {
+//         const skills = data.skills;
+//         // alert("Extracted skills: " + skills.join(', '));
+//         let formatted = `${labels["skills"]}: ${
+//         skills instanceof Set
+//             ? Array.from(skills).join(', ')
+//             : Array.isArray(skills)
+//             ? skills.join(', ')
+//             : skills
+//         }\n`;
 
-        // Step 2: Send to database
-        submitJD(title, skills);
-    })
-    .catch(err => {
-        alert("Error parsing skills: " + err.message);
-    });
-}
+
+//         console.log(formatted);
+//         // Step 2: Send to database
+//         submitJD(title, formatted);
+//     })
+//     .catch(err => {
+//         alert("Error parsing skills: " + err.message);
+//     });
+// }
 
 // JD File upload
 function uploadJDFile() {
@@ -341,12 +350,14 @@ function uploadJDFile() {
 
         console.log("Full JD JSON response:", data); 
         const title=data.title;
-        console.log(title)
         const skills= data.skills;
-        console.log(skills)
 
-        if (title && skills) {
-            submitJD(title, skills);
+        let formatted = `${Array.from(skills).join(', ')}\n`;
+
+        console.log(formatted)
+
+        if (title && formatted) {
+            submitJD(title, formatted);
             alert("JD uploaded and parsed successfully!");
         } else {
             alert("Failed to parse JD file.");

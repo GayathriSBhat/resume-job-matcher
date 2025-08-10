@@ -55,7 +55,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS job_descriptions (
             jd_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            skills BLOB NOT NULL
+            skills TEXT NOT NULL
         )
     ''')
 
@@ -208,11 +208,10 @@ def add_jd():
     data = request.get_json()
     print('received data:', data)
     title = data.get('title')
-    description = data.get('skills')
+    skills = data.get('skills')
     resume_id = data.get('resume_id')
-    print(resume_id)
 
-    if not title or not description or not resume_id:
+    if not title or not skills or not resume_id:
         return jsonify({'message': 'Missing fields'}), 400
 
     try:
@@ -221,7 +220,7 @@ def add_jd():
 
         cur.execute(
             'INSERT INTO job_descriptions (title, skills) VALUES (?, ?)',
-            (title, description)
+            (title, skills)
         )
         jd_id = cur.lastrowid
 
@@ -274,14 +273,14 @@ def parse_jd_file():
         parsed_data = jd_parser.parse()
 
         title = parsed_data['title']
-        print(title)
+        # print(title)
         description = parsed_data['raw_text']
-        print(description)
+        # print(description)
         skills = parsed_data['skills']
-        print(skills)
+        # print(skills)
 
         return jsonify({'message': 'JD uploaded and linked.', 'title': title,
-                        'skills': description}), 200
+                        'skills': skills}), 200
 
     except Exception as e:
         print("JD parse error:", e)
@@ -290,7 +289,7 @@ def parse_jd_file():
 #skill extraction for description sent by POST of manual JD submission
 @app.route('/parse_jd_skills', methods=['POST'])    
 def parse_jd_skills():
-    from utilities.resume_parser.extract_skills import ExtractSkills
+    from utilities.job_description_parser.extract_jdSkills import ExtractSkills
     data = request.get_json()
     description = data.get('description')
     extractor = ExtractSkills()
