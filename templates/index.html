@@ -86,7 +86,9 @@
 
     </form> 
 
-    <!-- JD -->
+<div>
+
+    <!-- Manual JD -->
     <div class="JDContainer">
 
         <h2>Enter Job Description </h2> 
@@ -99,15 +101,8 @@
         <textarea id="jdDesc"  placeholder="Enter JD Description..." ></textarea>
         </div>
 
-        <div class="form-actions">
-        <button onclick="uploadJDManual()">Submit Job Description </button>
-        </div>
-
-        <div> <h2>OR</h2> </div>
-
-        <div class="jdUpload">
-        <input type="file" id="jdFileInput" name="jd_file" accept=".pdf" onchange="uploadJDFile()" />
-        <label for="jdUpload" id="jdUpload">Upload JD File </label>
+        <div class="jdGroup">
+        <textarea id="jdSkill"  placeholder="Enter JD Description..." ></textarea>
         </div>
 
         <!-- Spinner -->
@@ -118,7 +113,44 @@
         </div>
         </div>
 
+
+        <div class="form-actions">
+        <button onclick="uploadJDManual()">Submit Job Description </button>
+        </div>
+
     </div>
+
+    <div> <h2>OR</h2> </div>
+
+    <!-- Upload JD -->
+    <div class="JDContainer">
+        <h2>Upload Job Description</h2>    
+        
+        <div class="jdGroup">
+        <input type="text" placeholder="Enter JD Title..." id="jdTitleUpload" />
+        </div>
+
+        <div class="jdGroup">
+        <textarea id="jdDescUpload"  placeholder="Enter JD Description..." ></textarea>
+        </div>
+
+
+        <!-- Spinner -->
+        <div id="spinner-jd" style="display: none;">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <p>Parsing JD... Please wait.</p>
+        </div>
+        </div>
+
+        <div class="jdUpload">
+        <input type="file" id="jdFileInput" name="jd_file" accept=".pdf" onchange="uploadJDFile()" />
+        <label for="jdFileInput" id="jdUpload">Upload JD File</label>
+        </div> 
+
+    </div>
+
+</div>
 
     <script src="{{ url_for('static', filename='index.js') }}"></script>
 </body>

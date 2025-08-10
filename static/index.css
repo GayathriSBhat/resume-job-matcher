@@ -28,10 +28,24 @@ body {
         margin: 20px 0;
     }
     /* jd upload button */
-    .jdUpload{
+    .jdUpload {
+        
         text-align: center; /* Center align */
         margin: 20px 0;
     }
+
+    #jdUpload {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    margin: 10px;
+}
+
 
     .resumeUpload input[type="file"] {
     display: none; /* Hide default input */
@@ -117,19 +131,22 @@ body {
 
     #jdDesc{
         width: 600px;
-        height: 400px;
+        height: 100px;
     }
 
+    #jdSkill{
+        width: 600px;
+        height: 100px;
+    }
+    
+#jdFileInput {
+    display: none; /* Hide default file input */
+}
 
-
-
-
-
-
-
-
-
-
+#jdDescUpload{
+        width: 600px;
+        height: 100px;
+    }
 
 input, textarea {
     width: 100%;
@@ -185,4 +202,39 @@ button {
 
 
 
+/* Fullscreen overlay */
+#spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    pointer-events: all; /* Prevent clicks */
+}
+
+/* Centered spinner + text */
+.spinner-container {
+    text-align: center;
+}
+
+/* Spinner styling */
+.spinner {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #8b5c8b;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
