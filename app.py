@@ -296,6 +296,34 @@ def parse_jd_skills():
     jd_skills= extractor.extract_skills(description)
     return jsonify({'skills': jd_skills}), 200
 
+# Update JD
+
+@app.route('/update_jd_info', methods=['POST'])
+def update_jd_info():
+    data = request.get_json()
+    resume_id = data.get('resume_id')
+    jd_id = data.get('jd_id')
+
+    if not resume_id:
+        return jsonify({'message': 'Missing resume_id or text'}), 400
+
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            '''UPDATE job_descriptions SET 
+                title = ?,
+                skills = ?            
+            WHERE jd_id = ?''',
+            (data.get('title'),
+            data.get('skills'),
+            jd_id)
+            )
+        conn.commit()
+        return jsonify({'message': 'JD updated successfully'}), 200
+    except Exception as e:
+        print("Update error:", e)
+        return jsonify({'message': 'Failed to update JD'}), 500
     
 
 

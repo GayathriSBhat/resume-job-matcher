@@ -106,17 +106,24 @@
         </div>
 
         <!-- Spinner -->
-        <div id="spinner-jd" style="display: none;">
+        <div id="spinner-overlay" style="display: none;">
         <div class="spinner-container">
             <div class="spinner"></div>
             <p>Parsing JD... Please wait.</p>
         </div>
         </div>
 
-
+        <div>
         <div class="form-actions">
         <button onclick="uploadJDManual()">Submit Job Description </button>
         </div>
+
+        <div class="form-actions">
+        <button onclick="updateJD('manual')" id="updateJD">Update Job Description</button>      
+        </div>
+        </div>
+
+
 
     </div>
 
@@ -131,12 +138,11 @@
         </div>
 
         <div class="jdGroup">
-        <textarea id="jdDescUpload"  placeholder="Enter JD Description..." ></textarea>
+        <textarea id="jdDescUpload"  placeholder="Enter JD skills..." ></textarea>
         </div>
 
-
         <!-- Spinner -->
-        <div id="spinner-jd" style="display: none;">
+        <div id="spinner-overlay" style="display: none;">
         <div class="spinner-container">
             <div class="spinner"></div>
             <p>Parsing JD... Please wait.</p>
@@ -147,6 +153,11 @@
         <input type="file" id="jdFileInput" name="jd_file" accept=".pdf" onchange="uploadJDFile()" />
         <label for="jdFileInput" id="jdUpload">Upload JD File</label>
         </div> 
+
+        <div class="form-actions">
+        <button onclick="updateJD('upload')" id="updateJD1">Update Job Description</button>      
+        </div>
+        </div>
 
     </div>
 

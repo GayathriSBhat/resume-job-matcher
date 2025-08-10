@@ -255,11 +255,15 @@ function submitJD(title, skills) {
         return response.json();
     })
     .then(data => {
+        console.log("New JD ID:", data.jd_id);
         alert(data.message || "JD submitted successfully!");
+         // If you want to use jd_id later you can use window.latestJDId anywhere else in your script to refer to the latest job description ID
+        window.latestJDId = data.jd_id;
     })
     .catch(err => {
         alert("Error submitting JD: " + err.message);
     });
+
 }
 
 // Manual JD submission
@@ -290,6 +294,7 @@ function skillExtractor(title, description) {
         return alert("Title and description are required.");
     }
 
+    document.getElementById('spinner-overlay').style.display = 'flex';
     // Step 1: Extract skills from description
     fetch('http://localhost:5000/parse_jd_skills', {
         method: 'POST',
@@ -303,6 +308,7 @@ function skillExtractor(title, description) {
         return response.json();
     })
     .then(data => {
+        document.getElementById('spinner-overlay').style.display = 'none';
         const skills = data.skills;
         // alert("Extracted skills: " + skills.join(', '));
         let formatted = `${Array.from(skills).join(', ')}\n`;
@@ -314,6 +320,7 @@ function skillExtractor(title, description) {
         document.getElementById('jdSkill').value = formatted;
     })
     .catch(err => {
+        document.getElementById('spinner-overlay').style.display = 'none';
         alert("Error parsing skills: " + err.message);
     });
 }
@@ -332,7 +339,7 @@ function uploadJDFile() {
     formData.append('resume_id', uploadedResumeId);
     console.log(uploadedResumeId)
 
-    document.getElementById('spinner-jd').style.display = 'flex';
+    document.getElementById('spinner-overlay').style.display = 'flex';
 
     fetch('http://localhost:5000/parse_jd_file', {
         method: 'POST',
@@ -340,7 +347,7 @@ function uploadJDFile() {
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById('spinner-jd').style.display = 'none';
+        document.getElementById('spinner-overlay').style.display = 'none';
 
         console.log("Full JD JSON response:", data); 
         const title=data.title;
@@ -361,7 +368,51 @@ function uploadJDFile() {
         }
     })
     .catch(err => {
-        document.getElementById('spinner-jd').style.display = 'none';
+        document.getElementById('spinner-overlay').style.display = 'none';
         alert("Error parsing JD file: " + err.message);
     });
 }
+
+
+// Update JD
+function updateJD(source = "manual") {
+    if (!window.latestJDId) {
+        alert("No JD was found");
+        return;
+    }
+
+    let title, skills;
+
+    if (source === "manual") {
+        // Manual JD form
+        title = document.getElementById("jdTitle").value;
+        skills = document.getElementById("jdSkill").value;
+    } else if (source === "upload") {
+        // Uploaded JD form
+        title = document.getElementById("jdTitleUpload").value;
+        // If skills come from parsing, fetch them from a parsed field
+        skills = document.getElementById("jdDescUpload").value; 
+    }
+
+    const updatedData = {
+        resume_id: uploadedResumeId,
+        title,
+        skills,
+        jd_id: window.latestJDId
+    };
+
+    fetch('/update_jd_info', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || "JD updated.");
+    })
+    .catch(error => {
+        console.error('Update error:', error);
+        alert("Error updating JD.");
+    });
+}
+
