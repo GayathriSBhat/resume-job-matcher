@@ -416,3 +416,55 @@ function updateJD(source = "manual") {
     });
 }
 
+// function for skill match
+function skillMatcher() {  
+    fetch('http://localhost:5000/skillMatcher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            jd_id: window.latestJDId, 
+            resume_id: uploadedResumeId
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data.match_percentage)
+        console.log(data.matched_skills)
+        console.log(data.unmatched_skills)
+
+        // Update match percentage text
+        document.getElementById("matchPercent").innerText = `${data.match_percentage}%`;
+
+        // Update progress bar width
+        document.getElementById("matchBar").style.width = `${data.match_percentage}%`;
+
+        // Populate matched skills
+        const matchedList = document.getElementById("matchedList");
+        matchedList.innerHTML = "";
+        data.matched_skills.forEach(skill => {
+            const li = document.createElement("li");
+            li.textContent = skill;
+            li.style.color = "green";
+            matchedList.appendChild(li);
+        });
+
+        // Populate unmatched skills
+        const unmatchedList = document.getElementById("unmatchedList");
+        unmatchedList.innerHTML = "";
+        data.unmatched_skills.forEach(skill => {
+            const li = document.createElement("li");
+            li.textContent = skill;
+            li.style.color = "red";
+            unmatchedList.appendChild(li);
+        });
+    })
+    .catch(error => {
+        console.error('Matching error:', error);
+        alert("Error matching skills");
+    });
+}

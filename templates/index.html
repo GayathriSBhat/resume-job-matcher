@@ -160,7 +160,21 @@
         </div>
 
     </div>
+</div>
 
+<button onclick="skillMatcher()">Check Skill Match</button>
+
+<div>
+    <h3>Match Percentage: <span id="matchPercent">0%</span></h3>
+    <div style="background:#ddd; width:300px; height:20px; border-radius:5px; overflow:hidden;">
+        <div id="matchBar" style="height:100%; background:green; width:0%;"></div>
+    </div>
+
+    <h4>Matched Skills</h4>
+    <ul id="matchedList"></ul>
+
+    <h4>Unmatched Skills</h4>
+    <ul id="unmatchedList"></ul>
 </div>
 
     <script src="{{ url_for('static', filename='index.js') }}"></script>

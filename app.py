@@ -324,7 +324,58 @@ def update_jd_info():
     except Exception as e:
         print("Update error:", e)
         return jsonify({'message': 'Failed to update JD'}), 500
-    
+
+
+@app.route('/skillMatcher', methods=['POST'])
+def skillMatcher():
+    from flask import jsonify, request
+    data = request.get_json()
+    resume_id = data.get('resume_id')
+    jd_id = data.get('jd_id') 
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Get JD skills
+    cur.execute("SELECT skills FROM job_descriptions WHERE jd_id = ?", (jd_id,))
+    jd_result = cur.fetchone()
+    if not jd_result:
+        return jsonify({"error": "Job description not found"}), 404
+    jd_skills = parse_skills(jd_result[0])
+
+    # Get Resume skills
+    cur.execute("SELECT skills FROM resumes WHERE resume_id = ?", (resume_id,))
+    resume_result = cur.fetchone()
+    if not resume_result:
+        return jsonify({"error": "Resume not found"}), 404
+    resume_skills = parse_skills(resume_result[0])
+
+    matched_skills = jd_skills & resume_skills
+    unmatched_skills = jd_skills - resume_skills
+    match_percentage = (len(matched_skills) / len(jd_skills)) * 100 if jd_skills else 0
+
+    return jsonify({
+        "matched_skills": sorted(matched_skills),
+        "unmatched_skills": sorted(unmatched_skills),
+        "match_percentage": round(match_percentage, 2)
+    })
+
+
+def parse_skills(skill_str):
+    # Remove brackets if the string looks like a list or set
+    cleaned = skill_str.strip("[]{}")
+    # Split on commas
+    parts = cleaned.split(",")
+    # Normalize each part
+    skills = set()
+    for part in parts:
+        # Remove leading/trailing spaces and both single/double quotes
+        skill = part.strip().strip("'").strip('"').lower()
+        if skill:
+            skills.add(skill)
+    return skills
+
+
 
 
 # -----------------------
